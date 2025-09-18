@@ -1,4 +1,5 @@
-# New_HMS
+**create database**
+
 create database hms_group;
 use hms_group;
 create table branch
@@ -276,6 +277,14 @@ create table user_session
 
 create index staff_id
     on user_session (staff_id);
+
+** HOW RUN **
+first edit .env file with the you database name and root pasword
+after creating database go to backend folder and run following command in CMD
+    npm install
+    npm run dev
+then goto frontend folder and open index.html
+    default login username and pasword = **admin**
 
 
 
