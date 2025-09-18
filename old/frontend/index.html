@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HospitalOS — Management Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;700&display=swap');
+    :root{
+      --bg1:#0b1220; --bg2:#0e1630; --card:#0f1b3d99; --accent:#6ee7ff; --accent2:#a78bfa; --glass: rgba(255,255,255,0.08); --stroke: rgba(255,255,255,0.12); --glow: #74f1ff;
+    }
+    html,body{ height:100%; }
+    body{
+      background: radial-gradient(1000px 700px at 10% 10%, #14224f 0%, transparent 60%),
+                  radial-gradient(900px 600px at 90% 20%, #2a0b52 0%, transparent 60%),
+                  linear-gradient(180deg, var(--bg1), var(--bg2));
+      color:#eaf2ff; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial; overflow-x:hidden;
+    }
+    .orb{ position:absolute; border-radius:9999px; filter: blur(40px); opacity:.35; animation: float 14s ease-in-out infinite; }
+    .orb.one{ width:340px; height:340px; left:-120px; top:-60px; background:#6ee7ff55; }
+    .orb.two{ width:420px; height:420px; right:-160px; top:120px; background:#a78bfa55; animation-duration:18s;}
+    .orb.three{ width:360px; height:360px; left:40%; bottom:-160px; background:#22d3ee44; animation-duration:22s;}
+    @keyframes float{ 0%{ transform: translateY(0) rotate(0deg);} 50%{ transform: translateY(-18px) rotate(3deg);} 100%{ transform: translateY(0) rotate(0deg);} }
+    .glass{ background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04)); border:1px solid var(--stroke); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06); }
+    .liquid-btn{ position: relative; isolation:isolate; border: 1px solid rgba(255,255,255,0.18); background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06)); color:#eaf6ff; overflow:hidden; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 8px 30px rgba(0,0,0,.25); }
+    .liquid-btn:hover{ transform: translateY(-1px); border-color: rgba(148, 163, 255, 0.6); box-shadow: 0 12px 40px rgba(80,180,255,.25), inset 0 1px 0 rgba(255,255,255,.4); }
+    .liquid-btn:active{ transform: translateY(0px) scale(.99); }
+    .liquid-btn .sheen{ position:absolute; inset:-40%; background: radial-gradient(120px 80px at var(--x,50%) var(--y,50%), rgba(255,255,255,.25), transparent 55%); filter: blur(14px); opacity:.35; transition: opacity .25s ease; pointer-events:none; }
+    .liquid-btn:hover .sheen{ opacity:.6; }
+    .liquid-btn .bubbles{ position:absolute; inset:-20%; background:
+        radial-gradient(18px 24px at 20% 60%, rgba(110,231,255,.22), transparent 60%),
+        radial-gradient(26px 26px at 70% 30%, rgba(167,139,250,.22), transparent 60%),
+        radial-gradient(14px 16px at 40% 80%, rgba(94,234,212,.22), transparent 60%),
+        radial-gradient(22px 18px at 85% 75%, rgba(110,231,255,.18), transparent 60%);
+      filter: blur(12px); animation: drift 8s ease-in-out infinite; pointer-events:none; opacity:.7; }
+    @keyframes drift{ 0%{ transform: translate(0,0) } 50%{ transform: translate(6px,-6px) } 100%{ transform: translate(0,0) } }
+    .tab{ position:relative; } .tab::after{ content:''; position:absolute; left:0; bottom:-10px; height:2px; width:0%; background: linear-gradient(90deg, #22d3ee, #a78bfa); transition: width .25s ease; border-radius: 2px; } .tab.active::after{ width:100%; }
+    .table{ border-collapse: separate; border-spacing: 0 10px; width:100%; }
+    .table thead th{ font-weight:600; letter-spacing:.02em; color:#cfe8ff; padding:10px 14px; }
+    .table tbody tr{ transition: transform .15s ease, background .2s ease; }
+    .table tbody tr:hover{ transform: translateY(-1px); }
+    .row-card{ background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)); border:1px solid var(--stroke); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+    .cell{ padding:14px 16px; }
+    .pill{ padding:6px 10px; border-radius:999px; font-weight:600; font-size:.8rem; }
+    .fade-up{ opacity:0; transform: translateY(10px); animation: fadeUp .6s ease forwards var(--delay, 0s); }
+    @keyframes fadeUp{ to{ opacity:1; transform: translateY(0) } }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+
+  <header class="px-6 lg:px-10 py-5 flex items-center justify-between relative z-10">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-2xl glass grid place-content-center">
+        <svg width="24" height="24" viewBox="0 0 24 24" class="text-cyan-300"><path fill="currentColor" d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg>
+      </div>
+      <div>
+        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight" style="font-family:'Plus Jakarta Sans', Inter">HospitalOS</h1>
+        <p class="text-cyan-200/80 text-xs">Industrial-grade management</p>
+      </div>
+    </div>
+    <div class="hidden md:flex items-center gap-3">
+      <div class="glass rounded-xl px-4 py-2 flex items-center gap-2">
+        <svg width="18" height="18" viewBox="0 0 24 24" class="text-cyan-200/70"><path fill="currentColor" d="M10 18a8 8 0 1 1 5.293-14.293A8 8 0 0 1 10 18Zm11 3.707L16.314 17.02A9.953 9.953 0 0 0 20 10a10 10 0 1 0-10 10a9.953 9.953 0 0 0 7.02-3.686L21.707 21.7z"/></svg>
+        <input id="globalSearch" placeholder="Search patients, staff, branches..." class="bg-transparent outline-none placeholder:text-cyan-200/50 text-sm w-64" />
+      </div>
+      <button id="quickAddBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative">
+        <div class="sheen"></div><div class="bubbles"></div>
+        + Quick Add
+      </button>
+    </div>
+  </header>
+
+  <main class="px-6 lg:px-10 pb-16 relative z-10">
+    <nav class="flex flex-wrap gap-4 mb-6">
+      <button data-tab="overview" class="tab active glass rounded-xl px-4 py-2 text-sm">Overview</button>
+      <button data-tab="patients" class="tab glass rounded-xl px-4 py-2 text-sm">Patients</button>
+      <button data-tab="appointments" class="tab glass rounded-xl px-4 py-2 text-sm">Appointments</button>
+      <button data-tab="staff" class="tab glass rounded-xl px-4 py-2 text-sm">Staff</button>
+      <button data-tab="branches" class="tab glass rounded-xl px-4 py-2 text-sm">Branches</button>
+      <button data-tab="insurance" class="tab glass rounded-xl px-4 py-2 text-sm">Insurance</button>
+    </nav>
+
+    <!-- Overview -->
+    <section id="panel-overview" class="space-y-6">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass rounded-2xl p-5 fade-up" style="--delay:.05s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm text-cyan-200/80">Active Patients</h3>
+            <span class="pill bg-cyan-500/20 text-cyan-200">Live</span>
+          </div>
+          <div class="flex items-end gap-3">
+            <p id="kpiPatients" class="text-3xl font-extrabold">0</p>
+            <span class="text-emerald-300 text-xs bg-emerald-500/10 border border-emerald-300/30 rounded-full px-2 py-0.5">+today</span>
+          </div>
+          <div class="mt-4">
+            <svg viewBox="0 0 100 28" class="w-full h-14">
+              <defs><linearGradient id="sp1" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="#22d3ee" stop-opacity=".9"/>
+                <stop offset="100%" stop-color="#a78bfa" stop-opacity=".9"/>
+              </linearGradient></defs>
+              <polyline fill="none" stroke="url(#sp1)" stroke-width="2"
+                points="0,20 10,17 20,18 30,14 40,12 50,15 60,10 70,9 80,12 90,7 100,9" />
+            </svg>
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5 fade-up" style="--delay:.1s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm text-cyan-200/80">Appointments Today</h3>
+            <span class="pill bg-fuchsia-500/20 text-fuchsia-200">Now</span>
+          </div>
+          <p id="kpiAppointments" class="text-3xl font-extrabold">0</p>
+          <div class="mt-4 flex items-center gap-2 text-xs text-cyan-200/80">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Scheduled
+            <span class="w-2 h-2 rounded-full bg-amber-400 ml-3"></span> Completed
+          </div>
+        </div>
+        <div class="glass rounded-2xl p-5 fade-up" style="--delay:.15s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm text-cyan-200/80">Active Doctors</h3>
+            <span class="pill bg-emerald-500/15 text-emerald-200">OK</span>
+          </div>
+          <p id="kpiDoctors" class="text-3xl font-extrabold">0</p>
+          <div class="mt-4 text-xs text-cyan-200/70">Across all branches</div>
+        </div>
+        <div class="glass rounded-2xl p-5 fade-up" style="--delay:.2s">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm text-cyan-200/80">Insurance Coverage</h3>
+            <span class="pill bg-cyan-500/15 text-cyan-200">Avg</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <svg width="64" height="64" viewBox="0 0 36 36">
+              <defs><linearGradient id="ring" x1="0" x2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs>
+              <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/>
+              <circle cx="18" cy="18" r="14" fill="none" stroke="url(#ring)" stroke-linecap="round" stroke-width="6"
+                stroke-dasharray="65 100" transform="rotate(-90 18 18)"/>
+            </svg>
+            <div>
+              <p id="kpiCoverage" class="text-3xl font-extrabold">0%</p>
+              <p class="text-xs text-cyan-200/70">Average coverage</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="font-semibold">Quick Actions</h3>
+            <p class="text-cyan-200/70 text-sm mt-1">Speed up your day with one-tap actions</p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button id="qaNewPatient" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>New Patient</button>
+            <button id="qaNewAppointment" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>Schedule Appointment</button>
+            <button id="qaNewStaff" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>Add Staff</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Patients -->
+    <section id="panel-patients" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-xl font-bold">Patients</h3>
+          <p class="text-cyan-200/70 text-sm">Manage profiles and contacts</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="patientSearch" placeholder="Search name or phone" class="glass rounded-xl px-4 py-2 text-sm outline-none" />
+          <button id="addPatientBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>+ Add Patient</button>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-4 overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="text-left">Name</th>
+              <th class="text-left">DOB</th>
+              <th class="text-left">Gender</th>
+              <th class="text-left">Phone</th>
+              <th class="text-left">Email</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="patientsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Appointments -->
+    <section id="panel-appointments" class="hidden space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-xl font-bold">Appointments</h3>
+          <p class="text-cyan-200/70 text-sm">Schedule, update, and track</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="apptStatusFilter" class="glass rounded-xl px-3 py-2 text-sm outline-none">
+            <option value="">All Status</option>
+            <option>Scheduled</option>
+            <option>Completed</option>
+            <option>Cancelled</option>
+          </select>
+          <button id="addApptBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>+ Schedule</button>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-4 overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="text-left">Patient</th>
+              <th class="text-left">Doctor</th>
+              <th class="text-left">Branch</th>
+              <th class="text-left">Date</th>
+              <th class="text-left">Time</th>
+              <th class="text-left">Status</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="apptsTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Staff -->
+    <section id="panel-staff" class="hidden space-y-5">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h3 class="text-xl font-bold">Staff</h3>
+          <p class="text-cyan-200/70 text-sm">Doctors, nurses, and more</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="staffRoleFilter" class="glass rounded-xl px-3 py-2 text-sm outline-none">
+            <option value="">All Roles</option>
+            <option>Doctor</option>
+            <option>Nurse</option>
+            <option>Receptionist</option>
+            <option>Admin</option>
+            <option>Other</option>
+          </select>
+          <button id="addStaffBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>+ Add Staff</button>
+        </div>
+      </div>
+      <div class="glass rounded-2xl p-4 overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="text-left">Name</th>
+              <th class="text-left">Role</th>
+              <th class="text-left">Speciality</th>
+              <th class="text-left">Email</th>
+              <th class="text-left">Branch</th>
+              <th class="text-left">Active</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="staffTbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Branches -->
+    <section id="panel-branches" class="hidden space-y-5">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h3 class="text-xl font-bold">Branches</h3>
+          <p class="text-cyan-200/70 text-sm">Locations and contact</p>
+        </div>
+        <button id="addBranchBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>+ Add Branch</button>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="branchesGrid"></div>
+    </section>
+
+    <!-- Insurance -->
+    <section id="panel-insurance" class="hidden space-y-5">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h3 class="text-xl font-bold">Insurance</h3>
+          <p class="text-cyan-200/70 text-sm">Policies and coverage</p>
+        </div>
+        <button id="addPolicyBtn" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative"><div class="sheen"></div><div class="bubbles"></div>+ Add Policy</button>
+      </div>
+      <div class="glass rounded-2xl p-4 overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="text-left">Patient</th>
+              <th class="text-left">Provider</th>
+              <th class="text-left">Policy #</th>
+              <th class="text-left">Coverage</th>
+              <th class="text-left">Deductible</th>
+              <th class="text-left">Expiry</th>
+              <th class="text-left">Active</th>
+              <th class="text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="policyTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <div id="modalBack" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="glass rounded-2xl w-full max-w-xl p-5 relative">
+      <button id="modalClose" class="absolute right-3 top-3 text-cyan-200/70 hover:text-white">
+        <svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M18.3 5.71L12 12l6.3 6.29l-1.41 1.42L10.59 13.4L4.3 19.71L2.89 18.3L9.18 12L2.89 5.71L4.3 4.29L10.59 10.6l6.3-6.31z"/></svg>
+      </button>
+      <h3 id="modalTitle" class="text-lg font-bold mb-4">Title</h3>
+      <form id="modalForm" class="space-y-3"></form>
+      <div class="mt-5 flex items-center justify-end gap-2">
+        <button id="modalCancel" class="glass rounded-xl px-4 py-2 text-sm">Cancel</button>
+        <button id="modalSave" class="liquid-btn rounded-xl px-4 py-2 text-sm font-semibold relative">
+          <div class="sheen"></div><div class="bubbles"></div>
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
